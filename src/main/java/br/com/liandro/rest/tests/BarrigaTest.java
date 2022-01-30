@@ -1,6 +1,7 @@
 package br.com.liandro.rest.tests;
 
 import br.com.liandro.core.BaseTest;
+import br.com.liandro.core.Movimentacao;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -44,7 +45,7 @@ public class BarrigaTest extends BaseTest {
     public void deveIncluirContaComSucesso() {
         given()
                 .header("Authorization", "JWT " + TOKEN)
-                .body("{\"nome\": \"conta teste\"}")
+                .body("{\"nome\": \"conta teste nova\"}")
             .when()
                 .post("/contas")
             .then()
@@ -66,7 +67,7 @@ public class BarrigaTest extends BaseTest {
     }
 
     @Test
-    public void naoDeveInserirContaComMesmoNOmejkj() {
+    public void naoDeveInserirContaComMesmoNome() {
         given()
                 .header("Authorization", "JWT " + TOKEN)
                 .body("{\"nome\": \"conta teste alterada\"}")
@@ -75,6 +76,30 @@ public class BarrigaTest extends BaseTest {
             .then()
                 .statusCode(400)
                 .body("error", is("Já existe uma conta com esse nome!"))
+        ;
+    }
+
+    @Test
+    public void deveInserirMovimentacaoComSucesso() {
+
+        Movimentacao movimentacao = new Movimentacao();
+        movimentacao.setConta_id(1050150);
+//        movimentacao.setUsuario_id(0);
+        movimentacao.setDescricao("Descricao da movimentacao");
+        movimentacao.setEnvolvido("Envolvido na movimentacao");
+        movimentacao.setTipo("REC");
+        movimentacao.setData_transacao("01/01/2019");
+        movimentacao.setData_pagamento("10/10/2021");
+        movimentacao.setValor(100f);
+        movimentacao.setStatus(true);
+
+        given()
+                .header("Authorization", "JWT " + TOKEN)
+                .body(movimentacao)
+            .when()
+                .post("/transacoes")
+            .then()
+                .statusCode(201)
         ;
     }
 
