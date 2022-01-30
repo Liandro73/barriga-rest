@@ -82,16 +82,7 @@ public class BarrigaTest extends BaseTest {
     @Test
     public void deveInserirMovimentacaoComSucesso() {
 
-        Movimentacao movimentacao = new Movimentacao();
-        movimentacao.setConta_id(1050150);
-//        movimentacao.setUsuario_id(0);
-        movimentacao.setDescricao("Descricao da movimentacao");
-        movimentacao.setEnvolvido("Envolvido na movimentacao");
-        movimentacao.setTipo("REC");
-        movimentacao.setData_transacao("01/01/2019");
-        movimentacao.setData_pagamento("10/10/2021");
-        movimentacao.setValor(100f);
-        movimentacao.setStatus(true);
+        Movimentacao movimentacao = getMovimentacaoValida();
 
         given()
                 .header("Authorization", "JWT " + TOKEN)
@@ -124,6 +115,38 @@ public class BarrigaTest extends BaseTest {
                         "Situação é obrigatório"
                         ))
         ;
+    }
+
+    @Test
+    public void naoDeveCadastrarMovimentacaoFutura() {
+        Movimentacao movimentacao = getMovimentacaoValida();
+        movimentacao.setData_transacao("05/01/2077");
+
+        given()
+                .header("Authorization", "JWT " + TOKEN)
+                .body(movimentacao)
+            .when()
+                .post("/transacoes")
+            .then()
+                .statusCode(400)
+                .body("$", hasSize(1))
+                .body("msg", hasItem("Data da Movimentação deve ser menor ou igual à data atual"))
+        ;
+    }
+
+    private Movimentacao getMovimentacaoValida() {
+        Movimentacao movimentacao = new Movimentacao();
+        movimentacao.setConta_id(1050150);
+//        movimentacao.setUsuario_id(0);
+        movimentacao.setDescricao("Descricao da movimentacao");
+        movimentacao.setEnvolvido("Envolvido na movimentacao");
+        movimentacao.setTipo("REC");
+        movimentacao.setData_transacao("01/01/2019");
+        movimentacao.setData_pagamento("10/10/2021");
+        movimentacao.setValor(100f);
+        movimentacao.setStatus(true);
+
+        return movimentacao;
     }
 
 }
