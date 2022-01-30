@@ -1,14 +1,34 @@
 package br.com.liandro.rest.tests;
 
 import br.com.liandro.core.BaseTest;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.*;
 
 public class BarrigaTest extends BaseTest {
+
+    private String TOKEN;
+
+    @Before
+    public void login() {
+        Map<String, String> login = new HashMap<>();
+        login.put("email", "wagner@aquino");
+        login.put("senha", "123456");
+
+        TOKEN = given()
+                .body(login)
+            .when()
+                .post("/signin")
+            .then()
+                .statusCode(200)
+                .extract().path("token")
+        ;
+    }
 
     @Test
     public void naoDeveAcessarApiSemToken() {
@@ -22,27 +42,26 @@ public class BarrigaTest extends BaseTest {
 
     @Test
     public void deveIncluirContaComSucesso() {
-
-        Map<String, String> login = new HashMap<>();
-        login.put("email", "wagner@aquino");
-        login.put("senha", "123456");
-
-        String token = given()
-                .body(login)
-            .when()
-                .post("/signin")
-            .then()
-                .statusCode(200)
-                .extract().path("token")
-        ;
-
         given()
-                .header("Authorization", "JWT " + token)
-                .body("{\"nome\": \"conta qualquer teste 1\"}")
+                .header("Authorization", "JWT " + TOKEN)
+                .body("{\"nome\": \"conta teste\"}")
             .when()
                 .post("/contas")
             .then()
                 .statusCode(201)
+        ;
+    }
+
+    @Test
+    public void deveAlterarContaComSucesso() {
+        given()
+                .header("Authorization", "JWT " + TOKEN)
+                .body("{\"nome\": \"conta teste alterada\"}")
+            .when()
+                .put("/contas/1050150")
+            .then()
+                .statusCode(200)
+                .body("nome", is("conta teste alterada"))
         ;
     }
 
