@@ -4,36 +4,13 @@ import br.com.liandro.core.BaseTest;
 import br.com.liandro.core.Movimentacao;
 import br.com.liandro.utils.DataUtils;
 import io.restassured.RestAssured;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import static br.com.liandro.utils.BarrigaUtils.*;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 public class MovimentacaoTest extends BaseTest {
-
-    @BeforeClass
-    public static void login() {
-        Map<String, String> login = new HashMap<>();
-        login.put("email", "1@1.gmail.com");
-        login.put("senha", "123456");
-
-        String TOKEN = given()
-                .body(login)
-                .when()
-                .post("/signin")
-                .then()
-                .statusCode(200)
-                .extract().path("token")
-                ;
-
-        RestAssured.requestSpecification.header("Authorization", "JWT " + TOKEN);
-
-        RestAssured.get("/reset").then().statusCode(200);
-    }
 
     @Test
     public void deveInserirMovimentacaoComSucesso() {
@@ -73,6 +50,7 @@ public class MovimentacaoTest extends BaseTest {
 
     @Test
     public void naoDeveCadastrarMovimentacaoFutura() {
+
         Movimentacao movimentacao = getMovimentacaoValida();
         movimentacao.setData_transacao(DataUtils.getDataDiferencaDias(7));
 
@@ -104,6 +82,7 @@ public class MovimentacaoTest extends BaseTest {
 
     @Test
     public void deveRemoverMovimentacao() {
+
         Integer MOVIMENTACAO_ID = getIdMovimentacaoPelaDescricao("Movimentacao para exclusao");
 
         given()
@@ -113,29 +92,6 @@ public class MovimentacaoTest extends BaseTest {
                 .then()
                 .statusCode(204)
         ;
-    }
-
-    public Integer getIdContaPeloNome(String nome) {
-        return RestAssured.get("/contas?nome=" + nome).then().extract().path("id[0]");
-    }
-
-    public Integer getIdMovimentacaoPelaDescricao(String descricao) {
-        return RestAssured.get("/transacoes?descricao=" + descricao).then().extract().path("id[0]");
-    }
-
-    private Movimentacao getMovimentacaoValida() {
-        Movimentacao movimentacao = new Movimentacao();
-        movimentacao.setConta_id(getIdContaPeloNome("Conta para movimentacoes"));
-//        movimentacao.setUsuario_id(0);
-        movimentacao.setDescricao("Descricao da movimentacao");
-        movimentacao.setEnvolvido("Envolvido na movimentacao");
-        movimentacao.setTipo("REC");
-        movimentacao.setData_transacao(DataUtils.getDataDiferencaDias(-1));
-        movimentacao.setData_pagamento(DataUtils.getDataDiferencaDias(30));
-        movimentacao.setValor(100f);
-        movimentacao.setStatus(true);
-
-        return movimentacao;
     }
 
 }
